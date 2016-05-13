@@ -1,0 +1,121 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+
+
+  <script src="jquery.js"></script>
+  <script src="underscore.js"></script>
+  <script src="backbone.js"></script>
+<script>
+var Todo = Backbone.Model.extend({
+  defaults: {
+    title: '',
+    completed: false
+  }
+});
+
+var TodosCollection = Backbone.Collection.extend({
+  model: Todo,
+
+  filterById: function(ids) {
+    return this.models.filter(
+      function(c) {
+        return _.contains(ids, c.id);
+    })
+  }
+
+});
+
+
+
+var myTodoInstance = new Todo({ title: 'read the whole book', id: 2});
+var myTodoInstance2 = new Todo({title: 'read read', id: 3});
+
+var todos = new TodosCollection([myTodoInstance, myTodoInstance2]);
+console.log("collection size: " + todos.length);
+
+var todoCid = todos.get(myTodoInstance.cid);
+console.log(JSON.stringify(todoCid.id));
+
+var sortedByAlphabet = todos.sortBy(function(todo){
+  return todo.get('title').toLowerCase();
+});
+
+console.log("now sorted");
+
+sortedByAlphabet.forEach(function(model){
+  console.log(model.get('title'));
+});
+
+var count = 1;
+console.log(todos.map(function(model){
+  return count++ + ". " + model.get('title');
+}));
+
+var titles = todos.pluck('title');
+console.log(titles);
+
+console.log(todos.length);
+
+myTodoInstance.set('completed', true);
+
+var byCompleted = todos.groupBy('completed');
+var completed = new Backbone.Collection(byCompleted[true]);
+console.log(completed.pluck('title'));
+
+var filteredNames = todos.chain()
+  .filter(function(todo){ return todo.get('title')})
+
+Backbone.on('event', function(){
+  console.log('handled a backbone event');
+});
+Backbone.trigger('event');
+
+var ourObject = {};
+
+_.extend(ourObject, Backbone.Events);
+
+ourObject.on('dance', function(msg) {
+  console.log('we tried ' + msg);
+});
+
+ourObject.trigger('dance', 'our event');
+
+var View = Backbone.View.extend({
+  el: '#todo',
+
+  events: {
+    'click [type='checkbox']': 'clicked',
+  },
+
+  intialize: function() {
+    // bind to DOM event using jquery
+    this.$el.click(this.jqueryClicked);
+    // bind to an API event
+    this.on('apiEvent', this.callback);
+  },
+
+  clicked: function(event) {
+    console.log('jquery handler for ' + this.outerHTML);
+  },
+
+  jqueryClicked: function(event) {
+    console.log('jQuery handler for ' + this.outerHTML);
+  },
+
+  callback: function(eventType) {
+    console.log('event type was ' + eventType);
+  }
+
+});
+
+var view = new View();
+
+</script>
+</body>
+</html>
